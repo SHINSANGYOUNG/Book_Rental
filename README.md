@@ -224,8 +224,9 @@ mvn spring-boot:run
  1. gateway 스프링부트 App을 추가 후 application.yaml내에 각 마이크로 서비스의 routes 를 추가하고 gateway 서버의 포트를 8080 으로 설정함
           - application.yaml 예시
 
-       ![image](https://user-images.githubusercontent.com/29780972/132992794-270910ab-22a4-46c1-bdd3-d100c8e50a8e.png)
        
+       ![image](https://user-images.githubusercontent.com/88864503/134764372-341badf5-8472-4dd0-baa8-1e89eb0ed572.png)
+
 
 
 ## Correlation
@@ -292,67 +293,23 @@ http GET http://localhost:8088/reservations
 - 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다. (예시는 Reservation 마이크로 서비스). 이때 가능한 현업에서 사용하는 언어 (유비쿼터스 랭귀지)를 그대로 사용하려고 노력했다. 현실에서 발생가는한 이벤트에 의하여 마이크로 서비스들이 상호 작용하기 좋은 모델링으로 구현을 하였다.
 
 ```
+package library;
+
+import javax.persistence.*;
+import org.springframework.beans.BeanUtils;
+import java.util.List;
+
 @Entity
-@Table(name="Reservation_table")
-public class Reservation {
+@Table(name="Book_table")
+public class Book {
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     private Long id;
-    private String customerid;
-    private String hospitalid;
-    private String date;
-    private String status;
-
-    @PostPersist
-    public void onPostPersist(){
-
-        System.out.println(" ============== 백신 예약 요청 ============== ");
-        ReservationPlaced reservationPlaced = new ReservationPlaced();
-        BeanUtils.copyProperties(this, reservationPlaced);
-        reservationPlaced.publishAfterCommit();
-
-        //Following code causes dependency to external APIs
-        // it is NOT A GOOD PRACTICE. instead, Event-Policy mapping is recommended.
-
-        vaccinereservation.external.Approval approval = new vaccinereservation.external.Approval();
-        // mappings goes here
-        /* 승인(approval) 동기 호출 진행 */
-        /* 승인 진행 가능 여부 확인 후 백신매핑 */
-        if(this.getStatus().equals("RSV_REQUESTED")){
-
-            approval.setReservationid(Long.toString(this.getId()));
-            approval.setStatus("APV_REQUESTED");
-        }
-
-        ReservationApplication.applicationContext.getBean(vaccinereservation.external.ApprovalService.class)
-            .requestapproval(approval);
-
-    }
-    
-    @PrePersist
-    public void onPrePersist(){
-        System.out.println(" ============== 백신 예약 요청 전 ============== ");
-        status = "RSV_REQUESTED";
-    }
-
-    @PostUpdate
-    public void onPostUpdate(){
-
-        System.out.println(" ============== 백신 취소 요청 ============== ");
-
-        if(this.getStatus().equals("CANCEL_REQUESTED") ){
-            ReservationCanceled reservationCanceled = new ReservationCanceled();
-            BeanUtils.copyProperties(this, reservationCanceled);
-            reservationCanceled.publishAfterCommit();
-        }
-
-        
-
-    }
-    @PreRemove
-    public void onPreRemove(){
-    }
+    private Long bookId;
+    private String bookStatus;
+    private Long memberId;
+    private Long rendtalId;
 
     public Long getId() {
         return id;
@@ -361,48 +318,47 @@ public class Reservation {
     public void setId(Long id) {
         this.id = id;
     }
-    public String getCustomerid() {
-        return customerid;
+    public Long getBookId() {
+        return bookId;
     }
 
-    public void setCustomerid(String customerid) {
-        this.customerid = customerid;
+    public void setBookId(Long bookId) {
+        this.bookId = bookId;
     }
-    public String getHospitalid() {
-        return hospitalid;
-    }
-
-    public void setHospitalid(String hospitalid) {
-        this.hospitalid = hospitalid;
-    }
-    public String getDate() {
-        return date;
+    public String getBookStatus() {
+        return bookStatus;
     }
 
-    public void setDate(String date) {
-        this.date = date;
+    public void setBookStatus(String bookStatus) {
+        this.bookStatus = bookStatus;
     }
-    public String getStatus() {
-        return status;
+    public Long getMemberId() {
+        return memberId;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setMemberId(Long memberId) {
+        this.memberId = memberId;
+    }
+    public Long getRendtalId() {
+        return rendtalId;
+    }
+
+    public void setRendtalId(Long rendtalId) {
+        this.rendtalId = rendtalId;
     }
 }
+
+
 ```
 
 - Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
 
 ```
-package vaccinereservation;
+package library;
 
 import org.springframework.data.repository.PagingAndSortingRepository;
-import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-@RepositoryRestResource(collectionResourceRel="reservations", path="reservations")
-public interface ReservationRepository extends PagingAndSortingRepository<Reservation, Long>{
-
+public interface BookRepository extends PagingAndSortingRepository<Book, Long>{
 }
 ```
 
@@ -422,64 +378,63 @@ public interface ReservationRepository extends PagingAndSortingRepository<Reserv
 분석단계에서의 조건 중 하나로 예약(reservation)->승인(approval) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 
 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient로 이용하여 호출하도록 한다.
 
-- 승인 서비스를 호출하기 위하여 Stub과 (FeignClient) 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현 
+- 결제서비스를 호출하기 위하여 Stub과 (FeignClient) 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현 
 
 ```
-#ReservationService.java
+#PaymentService.java
 
-@FeignClient(name="approval", url="${prop.aprv.url}")
-public interface ApprovalService {
-    @RequestMapping(method= RequestMethod.POST, path="/approvals")
-    public void requestapproval(@RequestBody Approval approval);
+@FeignClient(name="payment", url="${api.payment.url}") public interface PaymentService {
 
+@RequestMapping(method= RequestMethod.POST, path="/payments")//, fallback = PaymentServiceFallback.class)
+public void payship(@RequestBody Payment payment);
 }
 
 ```
 
-- 예약 요청을 받은 직후(@PostPersist) 승인여부를 동기(Sync)로 요청하도록 처리
+- 예약 이후(@PostPersist) 결제를 요청하도록 처리
 
 ```
-#Reservation.java
+#Rental.java
 
 @PostPersist
-    public void onPostPersist(){
+public void onPostPersist(){
+    Reserved reserved = new Reserved();
+    BeanUtils.copyProperties(this, reserved);
+    reserved.publishAfterCommit();
 
-        System.out.println(" ============== 백신 예약 요청 ============== ");
-        ReservationPlaced reservationPlaced = new ReservationPlaced();
-        BeanUtils.copyProperties(this, reservationPlaced);
-        reservationPlaced.publishAfterCommit();
 
-        //Following code causes dependency to external APIs
-        // it is NOT A GOOD PRACTICE. instead, Event-Policy mapping is recommended.
+    //Following code causes dependency to external APIs
+    // it is NOT A GOOD PRACTICE. instead, Event-Policy mapping is recommended.
+    library.external.Payment payment = new library.external.Payment();
+    // mappings goes here
+    payment.setId(this.id);
+    payment.setMemberId(this.memberId);
+    payment.setBookId(this.bookId);
+    payment.setReqState("reserve");
 
-        vaccinereservation.external.Approval approval = new vaccinereservation.external.Approval();
-        // mappings goes here
-        /* 승인(approval) 동기 호출 진행 */
-        /* 승인 진행 가능 여부 확인 후 백신매핑 */
-        if(this.getStatus().equals("RSV_REQUESTED")){
-
-            approval.setReservationid(Long.toString(this.getId()));
-            approval.setStatus("APV_REQUESTED");
-        }
-
-        ReservationApplication.applicationContext.getBean(vaccinereservation.external.ApprovalService.class)
-            .requestapproval(approval);
-
-    }
+    RentalApplication.applicationContext.getBean(library.external.PaymentService.class)
+        .payship(payment);
+}
     
 ```
 
 - 동기식 호출에서는 호출 시간에 따른 타임 커플링이 발생하며, 결제 시스템이 장애가 나면 주문도 못받는다는 것을 확인
 
 ```
-# 승인 (approval) 서비스를 잠시 내려놓음 (ctrl+c)
+# 결제 (payment) 서비스를 잠시 내려놓음
 
-# 예약 요청  - Fail
+#주문처리
+http http://localhost:8081/rentals memberId=1 bookId=1  #Fail 
 
 # 결제서비스 재기동
 
 
-# 예약 요청  - Success
+#결제서비스 재기동
+cd payment
+mvn spring-boot:run
+
+#주문처리
+http http://localhost:8081/rentals memberId=1 bookId=1   #Success
 
 ```
 
@@ -488,135 +443,72 @@ public interface ApprovalService {
 
 ## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트
 
-승인가 이루어진 후에 예약 시스템의 상태가 업데이트 되고, 백신관리 시스템의 상태 업데이트가 비동기식으로 호출된다.
-- 이를 위하여 승인이 완료되면 승인 완료 되었다는 이벤트를 카프카로 송출한다. (Publish)
+결제 이후 도서관리(book)시스템으로 결제 완료 여부를 알려주는 행위는 비 동기식으로 처리하여 
+도서관리 시스템의 처리로 인해 결제주문이 블로킹 되지 않도록 처리한다.
+- 이를 위하여 결제이력에 기록을 남긴 후에 곧바로 결제승인(paid)이 되었다는 도메인 이벤트를 카프카로 송출한다(Publish)
 
 ```
-#Approval.java
+# Payment.java
 
 @Entity
-@Table(name="Approval_table")
-public class Approval {
+@Table(name="Payment_table")
+public class Payment {
 
-    @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-    private Long id;
-    private String reservationid;
-    private String status;
-
+ ...
     @PostPersist
     public void onPostPersist(){
-
-        System.out.println(" ============== 예약 승인 요청 ============== ");
-
-        ApprovalFinished approvalFinished = new ApprovalFinished();
-        BeanUtils.copyProperties(this, approvalFinished);
-        approvalFinished.publishAfterCommit();
-
-    }
+        Paid paid = new Paid();
+        BeanUtils.copyProperties(this, paid);
+        paid.publishAfterCommit();
+ ...
+}
     
-    ....
-
-```
 
 
-- 백신관리 시스템에서는 승인 완료된 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다:
 
-```
+- 도서관리 서비스는 결제완료 이벤트를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다:
+
+# PolicyHandler.java (book)
+...
+
 @Service
 public class PolicyHandler{
-    @Autowired VaccineMgmtRepository vaccineMgmtRepository;
 
     @StreamListener(KafkaProcessor.INPUT)
-    public void wheneverApprovalFinished_CheckReservation(@Payload ApprovalFinished approvalFinished){
+    public void wheneverPaid_(@Payload Paid paid){
+        // 결제완료(예약)
+        if(paid.isMe()){
+            Book book = new Book();
+            book.setId(paid.getBookId());
+            book.setMemberId(paid.getMemberId());
+            book.setRendtalId(paid.getId());
+            book.setBookStatus("reserved");
 
-        if(!approvalFinished.validate()) return;
-
-        System.out.println("\n\n##### listener CheckReservation : " + approvalFinished.toJson() + "\n\n");
-	
-        // VaccineMgmt vaccineMgmt = new VaccineMgmt();
-        // vaccineMgmtRepository.save(vaccineMgmt);
-        VaccineMgmt vaccinemgmt = new VaccineMgmt();
-        vaccinemgmt.setReservationid(approvalFinished.getReservationid());
-        vaccinemgmt.setVaccinetype("모더나");
-        vaccinemgmt.setProductiondate("2021-09-01");
-        vaccinemgmt.setShelflife("2021-09-30");
-        vaccinemgmt.setQty(1);
-        vaccineMgmtRepository.save(vaccinemgmt);
-
+            bookRepository.save(book);
+        }
     }
-    
-    ....
+}
+
+도서관리 시스템은 대여/결제와 완전히 분리되어있으며, 이벤트 수신에 따라 처리되기 때문에, 도서관리시스템이 유지보수로 인해 잠시 내려간 상태라도 주문을 받는데 문제가 없다:
 
 ```
+# 도서관리 서비스 (book) 를 잠시 내려놓음
 
-그 외 예약 승인/거부는 백신 관리와 완전히 분리되어있으며, 이벤트 수신에 따라 처리되기 때문에, 유지보수로 인해 잠시 내려간 상태 라도 예약을 받는데 문제가 없다.
-
-```
-# 백신관리 서비스 (vaccineMgmt) 를 잠시 내려놓음 (ctrl+c)
-
-# 예약 요청  - Success
+#주문처리
+http http://localhost:8081/rentals memberId=1 bookId=1  #Success  
    
 
-# 예약 상태 확인  - vaccineMgmt 서비스와 상관없이 예약 상태는 정상 확인
-http GET http://localhost:8088/reservations
-```
+# 주문상태 확인  -  서비스와 상관없이 예약 상태는 정상 확인
+#상점 서비스 기동
+cd book
+mvn spring-boot:run
+
+#주문상태 확인
+http localhost:8080/rentals     # 모든 주문의 상태가 "reserved"으로 확인
 
 ## 폴리글랏 퍼시스턴스
 
-viewPage 는 RDB 계열의 데이터베이스인 Maria DB 를 사용하기로 하였다. 
-별다른 작업없이 기존의 Entity Pattern 과 Repository Pattern 적용과 데이터베이스 관련 설정 (pom.xml, application.yml) 만으로 Maria DB 에 부착시켰다.
 
-```
-#MyPage.java
-
-@Entity
-@Table(name="MyPage_table")
-public class MyPage {
-
-}
-
-#MyPageRepository.java
-
-package vaccinereservation;
-
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.query.Param;
-
-import java.util.List;
-
-public interface MyPageRepository extends CrudRepository<MyPage, Long> {
-
-    MyPage findByReservationid(String reservationid);
-
-}
-
-#pom.xml
-
-    		<dependency> 
-			<groupId>org.mariadb.jdbc</groupId> 
-			<artifactId>mariadb-java-client</artifactId> 
-		</dependency>
-
-# application.yml
- jpa:
-      show_sql: true
-      #format_sql: true
-      generate-ddl: true
-      hibernate:
-        ddl-auto: create-drop
-  
-  datasource:
-    url: jdbc:mariadb://localhost:3306/VaccineReservation
-    driver-class-name: org.mariadb.jdbc.Driver
-    username:  ####   (계정정보 숨김처리)
-    password:  ####   (계정정보 숨김처리)
-    			
-```
-
-실제 MariaDB 접속하여 확인 시, 데이터 확인 가능 (ex. Reservation에서 객실 예약 요청한 경우)
-
-![image](https://user-images.githubusercontent.com/29780972/132993463-ab6d81b5-0d03-4a44-b922-7cb7e5cf023f.png)
 
 
 
