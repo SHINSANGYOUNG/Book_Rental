@@ -1,4 +1,4 @@
-![logo](https://user-images.githubusercontent.com/90441340/132812163-26e595de-1236-4150-b699-0992756ff78f.jpg)
+![image](https://user-images.githubusercontent.com/88864503/134761660-326438fa-dd98-4531-94d1-652ef508119e.png)
 
 # 백신 예약
 
