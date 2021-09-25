@@ -111,10 +111,10 @@
 ![asis](https://user-images.githubusercontent.com/90441340/132832765-2ee6cd26-2841-43cd-b9ab-666664ee2de1.jpg)
 
 ## TO-BE 조직 (Vertically-Aligned)
-![tobe](https://user-images.githubusercontent.com/90441340/132832772-01fe71e5-1545-4f20-a31e-99ab56558371.jpg)
+![tobe]![image](https://user-images.githubusercontent.com/88864503/134762117-ad908987-e5d5-4d27-abb6-6f88bd3280ff.png)
 
 ## Event Storming 결과
-* MSAEz 로 모델링한 이벤트스토밍 결과 : http://www.msaez.io/#/storming/T57jg9xOfZNjxno4WWSzRwX0nwG2/e1a691320c2b3a0cdab793ec7b6488dc
+* MSAEz 로 모델링한 이벤트스토밍 결과 : https://www.msaez.io/#/storming/WwXHvrlj3pPbpwdkvR5NPhNGAj73/80b9a838bbd773a5578ac333ec7b1f2c
 
 ### 이벤트 도출
 ![event1](https://user-images.githubusercontent.com/90441340/132835649-0ae59e25-46a5-4241-ba14-e56f1da4502b.jpg)
