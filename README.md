@@ -117,13 +117,13 @@
 * MSAEz 로 모델링한 이벤트스토밍 결과 : https://www.msaez.io/#/storming/WwXHvrlj3pPbpwdkvR5NPhNGAj73/80b9a838bbd773a5578ac333ec7b1f2c
 
 ### 이벤트 도출
-![event1](https://user-images.githubusercontent.com/90441340/132835649-0ae59e25-46a5-4241-ba14-e56f1da4502b.jpg)
+![event1]![image](https://user-images.githubusercontent.com/88864503/134762511-2285f6ed-34bf-4eb7-825f-0d2c7d0a7f7f.png)
 
 ### 부적격 이벤트 탈락
-![event2](https://user-images.githubusercontent.com/90441340/132835320-18abe37d-b751-4858-a5d0-01d774fc9815.jpg)
+![event2]![image](https://user-images.githubusercontent.com/88864503/134762525-890972fb-b25f-4ffe-8124-abf9b3b8697c.png)
 
     - 과정중 도출된 잘못된 도메인 이벤트들을 걸러내는 작업을 수행함
-        - 예약 시 > CustomerAuthenticatied : 고객인증이 완료되어야 승인요청 이벤트가 발생하는 ACID 트랜잭션을 적용이 필요하므로 ReservationPlaced이벤트와 통합하여 처리
+        - 예약 시 > CustomerAuthenticatied : 고객인증이 완료되어야 예약 이벤트가 발생하는 ACID 트랜잭션을 적용이 필요하므로 Reserved이벤트와 통합하여 처리
 
 ### 액터, 커맨드 부착 및 어그리게잇으로 묶기
 ![msaez1](https://user-images.githubusercontent.com/90441340/132937802-c4c2d493-bd1a-4a3a-8995-5f95314f05c0.jpg)
@@ -131,7 +131,7 @@
 - Customer의 Reservation, Approval의 Approval관리, vaccine의 vaccine관리는 그와 연결된 command 와 event 들에 의하여 트랜잭션이 유지되어야 하는 단위로 그들 끼리 묶어줌
 
 ### 바운디드 컨텍스트로 묶기
-![msaez2](https://user-images.githubusercontent.com/90441340/132938090-317ce728-5447-470c-a4cd-05eb67e026ff.jpg)
+![msaez2]![image](https://user-images.githubusercontent.com/88864503/134762577-257c8502-825c-487f-8f99-7145d180fa62.png)
 
 ### 컨텍스트 매핑 (점선은 Pub/Sub, 실선은 Req/Resp)
 ![event3](https://user-images.githubusercontent.com/90441340/132938176-528c04f2-7769-4a0e-b899-55328a3860af.jpg)
