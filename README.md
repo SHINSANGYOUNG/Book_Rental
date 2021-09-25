@@ -504,6 +504,7 @@ mvn spring-boot:run
 #주문상태 확인
 http localhost:8080/rentals     # 모든 주문의 상태가 "reserved"으로 확인
 ```
+```
 ## 폴리글랏 퍼시스턴스
 
 
