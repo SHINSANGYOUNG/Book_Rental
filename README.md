@@ -165,7 +165,7 @@
         - 결제시스템이 과중되면 사용자를 잠시동안 받지 않고 승인을 잠시후에 하도록 유도한다  Circuit breaker, fallback
 
 ## 헥사고날 아키텍처 다이어그램 도출
-![Hex](https://user-images.githubusercontent.com/90441340/132939649-638d8f91-b7a7-41ba-b499-8fdb90e93bef.jpg)
+![image](https://user-images.githubusercontent.com/88864503/134763509-ed24a9c1-4a7d-44d7-8a8b-54ba19643847.png)
 
     - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
     - 호출관계에서 PubSub 과 Req/Resp 를 구분함
