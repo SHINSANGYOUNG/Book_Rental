@@ -496,13 +496,14 @@ http http://localhost:8081/rentals memberId=1 bookId=1  #Success
    
 
 #주문상태 확인  -  서비스와 상관없이 예약 상태는 정상 확인
+```
 #상점 서비스 기동
 cd book
 mvn spring-boot:run
 
 #주문상태 확인
 http localhost:8080/rentals     # 모든 주문의 상태가 "reserved"으로 확인
-
+```
 ## 폴리글랏 퍼시스턴스
 
 
