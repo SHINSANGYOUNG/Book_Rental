@@ -134,36 +134,35 @@
 ![image](https://user-images.githubusercontent.com/88864503/134762577-257c8502-825c-487f-8f99-7145d180fa62.png)
 
 ### 컨텍스트 매핑 (점선은 Pub/Sub, 실선은 Req/Resp)
-![event3](https://user-images.githubusercontent.com/90441340/132938176-528c04f2-7769-4a0e-b899-55328a3860af.jpg)
+![image](https://user-images.githubusercontent.com/88864503/134762996-ce5e27a6-bdd9-4206-8769-6cf072e186d7.png)
 
 ### 완성된 1차 모형!
-[event4](https://user-images.githubusercontent.com/90441340/132938193-26503282-64f8-46b4-abf1-5d5c17672070.jpg)
- 
- - View Model 추가
+
+- View Model 추가
 
 ### 1차 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
-![event5](https://user-images.githubusercontent.com/90441340/132938539-4de24525-7ec8-4b26-91ac-f99fe364a59c.jpg)
+![image](https://user-images.githubusercontent.com/88864503/134763329-a91326bd-822e-4d28-8aec-30cb5144d3d7.png)
 
-    - 고객이 병원, 날짜를 선택하여 예약한다. (ok)
-    - 승인을 받는다. (ok)
-    - 예약승인이 완료되면 예약 내역이 백신관리자에게 전달된다. (ok)
-    - 백신관리자는 백신유형, 수량, 유효기간, 제조일자를 선택후 예약을 완료한다.(ok)
+    - 고객이 도서를 선택하여 예약한다. (ok)
+    - 결재를 진행한다. (ok)
+    - 결재가 완료되면 예약 내역이 도서 관리 시스템에 업데이트 된다. (ok)
+    - 도서 예약 취소시 환불처리 되고, 도서 관리 시스템에 업데이트 된다.(ok)
     - 고객은 중간중간 예약 현황을 조회한다. (View-green sticker 의 추가로 ok)
 
-![event6](https://user-images.githubusercontent.com/90441340/132939739-07387a65-c451-4f55-be8f-b0404b2c1096.jpg)
+![image](https://user-images.githubusercontent.com/88864503/134763356-bf029e2e-8b97-44bc-a8d2-013d28434353.png)
 
-    - 고객이 예약을 취소할 수 있다. (ok)
-    - 예약이 취소되면 백신예약 상태가 변경되고 백신슈형, 유효기간, 제조일자가 초기화되고, 수량이 0으로 바뀐다.(ok)  
+    - 고객이 예약된 도서를 대여 / 반납 한다. (ok)
+    - 도서에 대한 대여 / 반납이 이루어지면, 도서 관리 시스템에 업데이트 된다.(ok)  
 
 ### 비기능 요구사항에 대한 검증
-![event4](https://user-images.githubusercontent.com/90441340/132938193-26503282-64f8-46b4-abf1-5d5c17672070.jpg)
+![image](https://user-images.githubusercontent.com/88864503/134763371-1bed1eea-3c18-44dd-b663-0b917fdc2193.png)
 
 - 마이크로 서비스를 넘나드는 시나리오에 대한 트랜잭션 처리
-        - 예약 승인 요청 시 승인처리:  승인이 완료되지 않은 예약은 절대 받지 않는다는 정책에 따라, ACID 트랜잭션 적용. 예약 승인 요청시 승인처리에 대해서는 Request-Response 방식 처리
-        - 승인 완료 시 백신 관리, 예약 완료 및 예약 상태 변경 처리:  승인에서  마이크로서비스로 예약완료내역이 전달되는 과정에 있어서 vaccinemgmt 마이크로 서비스가 별도의 배포주기를 가지기 때문에 Eventual Consistency 방식으로 트랜잭션 처리함.
+        - 도서예약 결제 처리:  결제가 완료되지 않은 예약은 처리되지 않는 다는정책에 따라, ACID 트랜잭션 적용. 예약 요청시 결제처리에 대해서는 Request-Response 방식 처리
+        - 결제 완료 시 예약 완료 및 상태 변경 처리:  걸제에서  마이크로서비스로 결제내역이 전달되는 과정에 있어서 Book 마이크로 서비스가 별도의 배포주기를 가지기 때문에 Eventual Consistency 방식으로 트랜잭션 처리함.
         - 나머지 모든 inter-microservice 트랜잭션: 예약상태, 백신상태 등 모든 이벤트에 대해 MyPage처리 등, 데이터 일관성의 시점이 크리티컬하지 않은 모든 경우가 대부분이라 판단, Eventual Consistency 를 기본으로 채택함.
-	- 백신 관리 기능이 수행되지 않더라도 예약 승인은 365일 24시간 받을 수 있어야 한다  Async (event-driven), Eventual Consistency
-        - 승인시스템이 과중되면 사용자를 잠시동안 받지 않고 승인을 잠시후에 하도록 유도한다  Circuit breaker, fallback
+	- 도서 관리 기능이 수행되지 않더라도 예약 승인은 365일 24시간 받을 수 있어야 한다  Async (event-driven), Eventual Consistency
+        - 결제시스템이 과중되면 사용자를 잠시동안 받지 않고 승인을 잠시후에 하도록 유도한다  Circuit breaker, fallback
 
 ## 헥사고날 아키텍처 다이어그램 도출
 ![Hex](https://user-images.githubusercontent.com/90441340/132939649-638d8f91-b7a7-41ba-b499-8fdb90e93bef.jpg)
