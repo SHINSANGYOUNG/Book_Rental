@@ -365,11 +365,11 @@ public interface BookRepository extends PagingAndSortingRepository<Book, Long>{
 - 적용 후 REST API 의 테스트
 
 ```
-#reservation 서비스의 백신 예약 요청
+#rental 서비스의 도서 예약 요청
 
-#vaccinemgmt 서비스의 백신 매핑
+#Book 서비스의 상태 업데이트
 
-#reservation 서비스의 백신 예약 상태 및 백신 종류 확인
+#Book 서비스의 도서 예약 상태 및 도서 유형 확인
 ```
 
 
