@@ -426,9 +426,6 @@ public void onPostPersist(){
 #주문처리
 http http://localhost:8081/rentals memberId=1 bookId=1  #Fail 
 
-# 결제서비스 재기동
-
-
 #결제서비스 재기동
 cd payment
 mvn spring-boot:run
@@ -492,13 +489,13 @@ public class PolicyHandler{
 도서관리 시스템은 대여/결제와 완전히 분리되어있으며, 이벤트 수신에 따라 처리되기 때문에, 도서관리시스템이 유지보수로 인해 잠시 내려간 상태라도 주문을 받는데 문제가 없다:
 
 ```
-# 도서관리 서비스 (book) 를 잠시 내려놓음
+#도서관리 서비스 (book) 를 잠시 내려놓음
 
 #주문처리
 http http://localhost:8081/rentals memberId=1 bookId=1  #Success  
    
 
-# 주문상태 확인  -  서비스와 상관없이 예약 상태는 정상 확인
+#주문상태 확인  -  서비스와 상관없이 예약 상태는 정상 확인
 #상점 서비스 기동
 cd book
 mvn spring-boot:run
